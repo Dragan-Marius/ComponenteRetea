@@ -3,44 +3,44 @@ package main.java.grid;
 import java.util.ArrayList;
 
 public class GridController {
-    private ArrayList<EnergyConsumer> consumatoriEnergie = new ArrayList();
-    private ArrayList<EnergyProducer> producatoriEnergie = new ArrayList();
-    private ArrayList<Battery> baterii = new ArrayList();
-    private ArrayList<String> mesaje = new ArrayList();
-    private int nr_tickuri = 0;
-    private boolean esteInBlackout = false;
-    public boolean getEsteInBlackout() {
-        return esteInBlackout;
+    private ArrayList<EnergyConsumer> energyConsumer = new ArrayList();
+    private ArrayList<EnergyProducer> energyProducer = new ArrayList();
+    private ArrayList<Battery> batteries = new ArrayList();
+    private ArrayList<String> messages = new ArrayList();
+    private int tickNumber = 0;
+    private boolean blackout = false;
+    public boolean getBlackout() {
+        return blackout;
     }
-    public String simuleazaTick(double factorSoare,double factorVant) {
-        if (getEsteInBlackout() == true) {
+    public String simulateTick(double sunFactor, double windFactor) {
+        if (getBlackout() == true) {
             return "EROARE: Reteaua este in BLACKOUT. Simulare oprita";
         }
-        nr_tickuri++;
-        for (EnergyConsumer energyConsumer : consumatoriEnergie) {
+        tickNumber++;
+        for (EnergyConsumer energyConsumer : energyConsumer) {
             energyConsumer.connectToNetwork();
         }
-        double productieTotala = 0.0;
+        double totalProduction = 0.0;
         double bTotal = 0.0;
-        String listaDecuplati = "";
+        String disconnectList = "";
         //calcul productie de energie
-        for (EnergyProducer energyProducer : producatoriEnergie) {
+        for (EnergyProducer energyProducer : energyProducer) {
             if (energyProducer.operationalStatus) {
-                productieTotala = productieTotala + energyProducer.calculateProduction(factorSoare, factorVant);
+                totalProduction = totalProduction + energyProducer.calculateProduction(sunFactor, windFactor);
             }
         }
-        double cerereTotala = 0.0;
+        double demandTotal = 0.0;
         double deficit = 0.0;
         //calcul cerere energie
-        for (EnergyConsumer energyConsumer : consumatoriEnergie) {
+        for (EnergyConsumer energyConsumer : energyConsumer) {
             //cerereTotala = cerereTotala + consumatorEnergie.getCerereCurenta();
             if (energyConsumer.operationalStatus) {
-                cerereTotala = cerereTotala + energyConsumer.getCurrentRequest();
+                demandTotal = demandTotal + energyConsumer.getCurrentRequest();
             }
         }
-        double delta = productieTotala - cerereTotala;
+        double delta = totalProduction - demandTotal;
         if (delta > 0) {
-            for (Battery battery : baterii) {
+            for (Battery battery : batteries) {
                 if (battery.operationalStatus) {
                     delta = battery.unload(delta);
                     if (delta <= 0.0) {
@@ -50,7 +50,7 @@ public class GridController {
             }
         } else if (delta < 0) {
             deficit = -delta;
-            for (Battery battery : baterii) {
+            for (Battery battery : batteries) {
                 if (battery.operationalStatus) {
                     deficit = deficit - battery.download(deficit);
                 }
@@ -59,55 +59,55 @@ public class GridController {
         if (deficit > 0) {
             //triage
             //decuplare in ordinea prioritatii
-            for (EnergyConsumer energyConsumer : consumatoriEnergie) {
+            for (EnergyConsumer energyConsumer : energyConsumer) {
                 if (energyConsumer.getPriority() == 3 && deficit > 0) {
                     energyConsumer.disconnectFromNetwork();
                     deficit = deficit - energyConsumer.getEnergyDemand();
-                    if (listaDecuplati.length() != 0) {
-                        listaDecuplati = listaDecuplati + ", ";
+                    if (disconnectList.length() != 0) {
+                        disconnectList = disconnectList + ", ";
                     }
-                    listaDecuplati = listaDecuplati + energyConsumer.id;
+                    disconnectList = disconnectList + energyConsumer.id;
                 }
             }
-            for (EnergyConsumer energyConsumer : consumatoriEnergie) {
+            for (EnergyConsumer energyConsumer : energyConsumer) {
                 if (energyConsumer.getPriority() == 2 && deficit > 0) {
                     energyConsumer.disconnectFromNetwork();
                     deficit = deficit - energyConsumer.getEnergyDemand();
-                    if (listaDecuplati.length() != 0) {
-                        listaDecuplati = listaDecuplati + ", ";
+                    if (disconnectList.length() != 0) {
+                        disconnectList = disconnectList + ", ";
                     }
-                    listaDecuplati = listaDecuplati + energyConsumer.id;
+                    disconnectList = disconnectList + energyConsumer.id;
                 }
             }
         }
         if (deficit > 0) {
-            esteInBlackout = true;
-            mesaje.add("Tick " + nr_tickuri + ": BLACKOUT! SIMULARE OPRITA.");
+            blackout = true;
+            messages.add("Tick " + tickNumber + ": BLACKOUT! SIMULARE OPRITA.");
             // nr_tickuri++;
             return "BLACKOUT! SIMULARE OPRITA.";
         }
-        for (Battery battery : baterii) {
+        for (Battery battery : batteries) {
             bTotal = bTotal + battery.getStoredEenergy();
         }
-        String productieTotalaFormat = String.format("%.2f", productieTotala);
+        String productieTotalaFormat = String.format("%.2f", totalProduction);
         String bTotalFormat = String.format("%.2f", bTotal);
-        String cerereTotalaFormat = String.format("%.2f", cerereTotala);
-        return "TICK: Productie " + productieTotalaFormat + ", Cerere " + cerereTotalaFormat + ". Baterii: " + bTotalFormat + " MW. Decuplati: [" + listaDecuplati + "]";
+        String cerereTotalaFormat = String.format("%.2f", demandTotal);
+        return "TICK: Productie " + productieTotalaFormat + ", Cerere " + cerereTotalaFormat + ". Baterii: " + bTotalFormat + " MW. Decuplati: [" + disconnectList + "]";
     }
 
-    public int verificare(String id){
+    public int verification(String id){
         //verificare unicitate id
-        for(EnergyProducer energyProducer :producatoriEnergie){
+        for(EnergyProducer energyProducer : energyProducer){
             if(energyProducer.id.equals(id)){
                 return 0;
             }
         }
-        for(EnergyConsumer energyConsumer :consumatoriEnergie){
+        for(EnergyConsumer energyConsumer : energyConsumer){
             if(energyConsumer.id.equals(id)){
                 return 0;
             }
         }
-        for(Battery battery :baterii){
+        for(Battery battery : batteries){
             if(battery.id.equals(id)){
                 return 0;
             }
@@ -115,94 +115,94 @@ public class GridController {
         return 1;
     }
 
-    public String adaugareProducator(String tip_producator,String id, double putere){
+    public String addProducer(String producerType, String id, double power){
         //verificare stare retea
-        if(esteInBlackout==true)
+        if(blackout ==true)
             return "EROARE: Reteaua este in BLACKOUT. Simulare oprita.";
-        int ok=verificare(id);
+        int ok= verification(id);
         if(ok==0){
             return "EROARE: Exista deja o componenta cu id-ul "+id+"\n";
         }
         //verificare tip producator
-        if(tip_producator.equals("solar")){
-            SolarPanel producator_solar = new SolarPanel(putere,id);
-            producatoriEnergie.add(producator_solar);
+        if(producerType.equals("solar")){
+            SolarPanel solarProducer = new SolarPanel(power,id);
+            energyProducer.add(solarProducer);
         }
-        if(tip_producator.equals("reactor")){
-            NuclearReactor producator_reactor = new NuclearReactor(putere,id);
-            producatoriEnergie.add(producator_reactor);
+        if(producerType.equals("reactor")){
+            NuclearReactor reactorProducer = new NuclearReactor(power,id);
+            energyProducer.add(reactorProducer);
         }
-        if(tip_producator.equals("turbina")){
-            WindTurbine producator_turbina = new WindTurbine(putere,id);
-            producatoriEnergie.add(producator_turbina);
+        if(producerType.equals("turbina")){
+            WindTurbine turbineProducer = new WindTurbine(power,id);
+            energyProducer.add(turbineProducer);
         }
-        return "S-a adaugat producatorul "+id+" de tip " + tip_producator+"\n";
+        return "S-a adaugat producatorul "+id+" de tip " + producerType +"\n";
     }
 
-    public String adaugareConsumator(String tip_consumator, String id, double putere){
+    public String addConsumer(String ConsumatorType, String id, double power){
         //verificare stare retea
-        if(esteInBlackout==true)
+        if(blackout ==true)
             return "EROARE: Reteaua este in BLACKOUT. Simulare oprita.";
-        int ok = verificare(id);
+        int ok = verification(id);
         if(ok == 0){
             return "EROARE: Exista deja o componenta cu id-ul " + id + "\n";
         }
         //verificare tip consumator
-        if(tip_consumator.equals("suport_viata")){
-            LifeSupportSystem lifeSupportSystem = new LifeSupportSystem(id, putere);
-            consumatoriEnergie.add(lifeSupportSystem);
+        if(ConsumatorType.equals("suport_viata")){
+            LifeSupportSystem lifeSupportSystem = new LifeSupportSystem(id, power);
+            energyConsumer.add(lifeSupportSystem);
         }
-        if(tip_consumator.equals("laborator")){
-            ScientificLaboratory lab = new ScientificLaboratory(id,putere);
-            consumatoriEnergie.add(lab);
+        if(ConsumatorType.equals("laborator")){
+            ScientificLaboratory lab = new ScientificLaboratory(id, power);
+            energyConsumer.add(lab);
         }
-        if(tip_consumator.equals("iluminat")){
-            LightingSystem sistem = new LightingSystem(id,putere);
-            consumatoriEnergie.add(sistem);
+        if(ConsumatorType.equals("iluminat")){
+            LightingSystem system = new LightingSystem(id, power);
+            energyConsumer.add(system);
         }
-        return "S-a adaugat consumatorul " + id + " de tip " + tip_consumator+"\n";
+        return "S-a adaugat consumatorul " + id + " de tip " + ConsumatorType +"\n";
     }
 
-    public String adaugareBaterie(String id, double capacitate_maxima){
+    public String addBattery(String id, double maximumCapacity){
         //verificare stare retea
-        if(esteInBlackout==true)
+        if(blackout ==true)
             return "EROARE: Reteaua este in BLACKOUT. Simulare oprita.";
-        int ok = verificare(id);
+        int ok = verification(id);
         if(ok==0){
             return "EROARE: Exista deja o componenta cu id-ul " + id + "\n";
         }
-        Battery batteryNew = new Battery(id, capacitate_maxima);
-        baterii.add(batteryNew);
-        return "S-a adaugat bateria " + id + " cu capacitatea " + capacitate_maxima + "\n";
+        Battery batteryNew = new Battery(id, maximumCapacity);
+        batteries.add(batteryNew);
+        return "S-a adaugat bateria " + id + " cu capacitatea " + maximumCapacity + "\n";
     }
 
-    public String verificareStatus(String id,boolean status_operational){
+    public String statusVerification(String id, boolean OperationalStatus){
         //verificare id
-        int ok=verificare(id);
+        int ok= verification(id);
         if (ok == 1)
             return "EROARE: Nu exista componenta cu id-ul " + id + "\n";
         //schimbare status operational
-        for(EnergyConsumer energyConsumer :consumatoriEnergie){
+        for(EnergyConsumer energyConsumer : energyConsumer){
             if(energyConsumer.id.equals(id)){
-                energyConsumer.operationalStatus =status_operational;
+                energyConsumer.operationalStatus = OperationalStatus;
                 if(energyConsumer.operationalStatus ==true){
                     return "Componenta " + id + " este acum operationala\n";
                 }
                 else return "Componenta " + id + " este acum defecta\n";
             }
         }
-        for(EnergyProducer energyProducer :producatoriEnergie){
+        for(EnergyProducer energyProducer : energyProducer){
             if(energyProducer.id.equals(id)){
-                energyProducer.operationalStatus =status_operational;
+                energyProducer.operationalStatus = OperationalStatus;
                 if(energyProducer.operationalStatus ==true){
                     return "Componenta " + id + " este acum operationala\n";
                 }
                 else return "Componenta " + id + " este acum defecta\n";
             }
         }
-        for(Battery battery :baterii){
+        for(Battery battery : batteries){
             if(battery.id.equals(id)){
-                battery.operationalStatus =status_operational;
+                battery.operationalStatus = OperationalStatus;
                 if(battery.operationalStatus ==true){
                     return "Componenta " + id + " este acum operationala\n";
                 }
@@ -212,33 +212,33 @@ public class GridController {
         return "";
     }
 
-    public String stareRetea(){
+    public String NetworkState(){
         //tipul retelei
-        if(baterii.size()==0 && producatoriEnergie.size()==0  && consumatoriEnergie.size()==0){
+        if(batteries.size()==0 && energyProducer.size()==0  && energyConsumer.size()==0){
             return "Reteaua este goala\n";
         }
-        String raspuns="";
-        if(esteInBlackout==true) {
-            raspuns = raspuns + "Stare Retea: BLACKOUT\n";
+        String answer="";
+        if(blackout ==true) {
+            answer = answer + "Stare Retea: BLACKOUT\n";
         } else {
-            raspuns = raspuns+"Stare Retea: STABILA" + "\n";
+            answer = answer+"Stare Retea: STABILA" + "\n";
         }
-        for (EnergyProducer energyProducer : producatoriEnergie) {
-            raspuns = raspuns + energyProducer.displayDetails();
+        for (EnergyProducer energyProducer : energyProducer) {
+            answer = answer + energyProducer.displayDetails();
         }
-        for (EnergyConsumer energyConsumer : consumatoriEnergie) {
-            raspuns = raspuns + energyConsumer.displayDetails();
+        for (EnergyConsumer energyConsumer : energyConsumer) {
+            answer = answer + energyConsumer.displayDetails();
         }
-        for (Battery battery : baterii) {
-            raspuns = raspuns + battery.showDetails();
+        for (Battery battery : batteries) {
+            answer = answer + battery.showDetails();
         }
-        return raspuns;
+        return answer;
     }
-    public String afisareIstoriTick(){
-        String istoric="";
-        for(String s:mesaje){
-            istoric=istoric+s+"\n";
+    public String historyTick(){
+        String history="";
+        for(String s: messages){
+            history=history+s+"\n";
         }
-        return istoric;
+        return history;
     }
 }

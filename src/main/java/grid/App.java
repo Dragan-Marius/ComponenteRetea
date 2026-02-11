@@ -1,9 +1,6 @@
 package main.java.grid;
-import javax.sound.midi.SysexMessage;
 import java.io.*;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.text.*;
 
 public class App {
     private Scanner scanner;
@@ -14,29 +11,29 @@ public class App {
 
     public void run() {
         //comanda
-        String linieComanda=scanner.nextLine();
+        String lineCommand=scanner.nextLine();
         GridController grid = new GridController();
-        while(!linieComanda.equals("7")){
-            String [] comanda=linieComanda.split(" ");
+        while(!lineCommand.equals("7")){
+            String [] command=lineCommand.split(" ");
             //identificare elemente din comanda
-            int nr_comanda=-1;
+            int commandNumber=-1;
             //tipul comenzii si tratare cazuri de eroare
             try {
-                    nr_comanda = Integer.parseInt(comanda[0]);
+                    commandNumber = Integer.parseInt(command[0]);
             }catch (IllegalArgumentException e){
                 System.out.println("EROARE: Comanda necunoscuta.");
             }
-            if(nr_comanda>7)
+            if(commandNumber>7)
                 System.out.println("EROARE: Comanda necunoscuta.");
 
-            if(nr_comanda==0){
+            if(commandNumber==0){
                 //adaugare producator
-                if(comanda[1].equals("solar") || comanda[1].equals("reactor") || comanda[1].equals("turbina") ){
-                    if(comanda.length==4) {
+                if(command[1].equals("solar") || command[1].equals("reactor") || command[1].equals("turbina") ){
+                    if(command.length==4) {
                         //verificare numar parametri
-                        double putere = Double.parseDouble(comanda[3]);
-                        if (putere > 0.0) {
-                            String adaugare = grid.adaugareProducator(comanda[1], comanda[2], putere);
+                        double power = Double.parseDouble(command[3]);
+                        if (power > 0.0) {
+                            String adaugare = grid.addProducer(command[1], command[2], power);
                             System.out.println(adaugare);
                         } else {
                             System.out.println("EROARE: Putere invalida\n");
@@ -50,14 +47,14 @@ public class App {
                 }
             }
 
-            if(nr_comanda==1){
+            if(commandNumber==1){
                 //adaugare consumator
-                if(comanda[1].equals("suport_viata") || comanda[1].equals("laborator") || comanda[1].equals("iluminat")){
-                    if(comanda.length==4) {
+                if(command[1].equals("suport_viata") || command[1].equals("laborator") || command[1].equals("iluminat")){
+                    if(command.length==4) {
                         //verificare numar parametri
-                        double capacitate_max = Double.parseDouble(comanda[3]);
-                        if (capacitate_max > 0.0) {
-                            String adaugare = grid.adaugareConsumator(comanda[1], comanda[2], capacitate_max);
+                        double maxCapacity = Double.parseDouble(command[3]);
+                        if (maxCapacity > 0.0) {
+                            String adaugare = grid.addConsumer(command[1], command[2], maxCapacity);
                             System.out.println(adaugare);
                         } else {
                             System.out.println("EROARE: Cerere putere invalida\n");
@@ -71,13 +68,13 @@ public class App {
                 }
             }
 
-            if(nr_comanda==2){
+            if(commandNumber==2){
                 //adaugare baterie
-                if(comanda.length==3) {
+                if(command.length==3) {
                     //verificare numar parametri
-                    double capacitate_max = Double.parseDouble(comanda[2]);
+                    double capacitate_max = Double.parseDouble(command[2]);
                     if (capacitate_max > 0.0) {
-                        String adaugare = grid.adaugareBaterie(comanda[1], capacitate_max);
+                        String adaugare = grid.addBattery(command[1], capacitate_max);
                         System.out.println(adaugare);
                     } else {
                         System.out.println("EROARE: Capacitate invalida\n");
@@ -87,15 +84,15 @@ public class App {
                 }
             }
 
-            if(nr_comanda==3){
-                if(comanda.length==3){
+            if(commandNumber==3){
+                if(command.length==3){
                     //verificare numar parametri
                     try{
                         //tipul parametrilor sa fie double
-                        double factorSoare=Double.parseDouble(comanda[1]);
-                        double factorVant=Double.parseDouble(comanda[2]);
-                        String raspunsSimulare=grid.simuleazaTick(factorSoare, factorVant);
-                        System.out.println(raspunsSimulare);
+                        double sunFactor=Double.parseDouble(command[1]);
+                        double windFactor=Double.parseDouble(command[2]);
+                        String simulationAnswer=grid.simulateTick(sunFactor, windFactor);
+                        System.out.println(simulationAnswer);
                     } catch (IllegalArgumentException e) {
                         System.out.println("EROARE: Factori invalizi");
                     }
@@ -105,33 +102,33 @@ public class App {
                 }
             }
 
-            if(nr_comanda==4){
+            if(commandNumber==4){
                 //verificare tip status
-                if(comanda[2].equals("true") || comanda[2].equals("false")){
-                    boolean status=Boolean.parseBoolean(comanda[2]);
-                    String verificare=grid.verificareStatus(comanda[1],status);
-                    System.out.println(verificare);
+                if(command[2].equals("true") || command[2].equals("false")){
+                    boolean status=Boolean.parseBoolean(command[2]);
+                    String verification=grid.statusVerification(command[1],status);
+                    System.out.println(verification);
                 }
                 else System.out.println("EROARE: Status invalid\n");
             }
 
-            if(nr_comanda==5){
-                String raspuns=grid.stareRetea();
-                System.out.println(raspuns);
+            if(commandNumber==5){
+                String answer=grid.NetworkState();
+                System.out.println(answer);
             }
 
-            if(nr_comanda==6){
-                String istoric=grid.afisareIstoriTick();
-                if(istoric.equals("")){
+            if(commandNumber==6){
+                String history=grid.historyTick();
+                if(history.equals("")){
                     System.out.println("Istoric evenimente gol");
                 }
                 else
-                    System.out.println(istoric);
+                    System.out.println(history);
             }
             //citire urmatoarea comanda
-            linieComanda=scanner.nextLine();
+            lineCommand=scanner.nextLine();
         }
-        if(linieComanda.equals("7")) {
+        if(lineCommand.equals("7")) {
             System.out.println("Simulatorul se inchide.\n");
         }
 
