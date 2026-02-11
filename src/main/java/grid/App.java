@@ -1,7 +1,4 @@
-package grid;
-
-import main.java.Tema1.GridController;
-
+package main.java.grid;
 import javax.sound.midi.SysexMessage;
 import java.io.*;
 import java.util.*;
