@@ -1,4 +1,4 @@
-package Tema1;
+package grid;
 
 import main.java.Tema1.GridController;
 

@@ -1,4 +1,4 @@
-package main.java.Tema1;
+package main.java.grid;
 
 public class SistemSuportViata extends ConsumatorEnergie{
     SistemSuportViata(String id, double cerereEnergie){

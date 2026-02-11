@@ -1,4 +1,4 @@
-package main.java.Tema1;
+package main.java.grid;
 
 public class TurbinaEoliana extends ProducatorEnergie {
     private double putereBaza;

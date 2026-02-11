@@ -1,4 +1,4 @@
-package main.java.Tema1;
+package main.java.grid;
 
 public class LaboratorStiintific extends ConsumatorEnergie{
     public LaboratorStiintific(String id,double cerereEnergie){

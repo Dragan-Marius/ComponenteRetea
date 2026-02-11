@@ -1,4 +1,4 @@
-package main.java.Tema1;
+package main.java.grid;
 
 import java.util.ArrayList;
 

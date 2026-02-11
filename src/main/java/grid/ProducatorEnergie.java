@@ -1,4 +1,4 @@
-package main.java.Tema1;
+package main.java.grid;
 
 public abstract class ProducatorEnergie extends ComponenteRetea{
     public abstract double calculeazaProductie(double procentajSoare, double vitezaVant);

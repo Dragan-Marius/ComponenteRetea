@@ -1,4 +1,4 @@
-package main.java.Tema1;
+package main.java.grid;
 
 public class ReactorNuclear extends ProducatorEnergie{
    protected double putereConstanta;

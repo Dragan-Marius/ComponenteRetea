@@ -1,4 +1,4 @@
-package main.java.Tema1;
+package main.java.grid;
 
 public class Baterie extends ComponenteRetea{
     private double capacitateMaxima;
