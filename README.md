@@ -88,9 +88,8 @@ Technologies Used
 
  How to Run
 
-1.  Compile the project.
-2.  Run the main application file.
-3.  Enter commands in the console to manage the grid and simulate ticks.
+javac -d bin src/**/*.java
+java -cp bin Main
 
 Example Simulation Behavior
 
